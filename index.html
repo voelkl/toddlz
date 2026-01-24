@@ -283,6 +283,10 @@
             });
         }
 
+        // Track currently playing sound
+        let currentAudio = null;
+        let currentStopTimeout = null;
+
         // Create animal cards
         function createAnimalCards() {
             const container = document.getElementById('gameContainer');
@@ -295,6 +299,10 @@
                     <span class="animal-name">${animal.name}</span>
                 `;
 
+                // Pre-create a single audio element per animal
+                const audio = new Audio(`sounds/${animal.sound}.mp3`);
+                audio.volume = 0.7;
+
                 // Handle tap/click
                 const handleInteraction = (e) => {
                     e.preventDefault();
@@ -302,16 +310,21 @@
 
                     // Play sound
                     if (!isMuted) {
-                        // Try real sound first, fall back to synth
-                        const audio = new Audio(`sounds/${animal.sound}.mp3`);
-                        audio.volume = 0.7;
+                        // Stop any currently playing sound
+                        if (currentAudio) {
+                            currentAudio.pause();
+                            currentAudio.currentTime = 0;
+                        }
+                        clearTimeout(currentStopTimeout);
 
-                        // Limit playback to 2 seconds max
+                        // Play this animal's sound
+                        currentAudio = audio;
+                        audio.currentTime = 0;
                         audio.play().then(() => {
-                            setTimeout(() => {
+                            currentStopTimeout = setTimeout(() => {
                                 audio.pause();
                                 audio.currentTime = 0;
-                            }, 2000);
+                            }, 3500);
                         }).catch(() => playAnimalSound(animal));
                     }
 
